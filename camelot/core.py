@@ -12,6 +12,7 @@ from operator import itemgetter
 from typing import Any
 from typing import Iterable
 from typing import Iterator
+from alive_progress import bar
 
 import cv2
 import pandas as pd
@@ -1002,10 +1003,13 @@ class TableList:
         elif f == "excel":
             filepath = os.path.join(dirname, basename)
             writer = pd.ExcelWriter(filepath)
-            for table in self._tables:
-                sheet_name = f"page-{table.page}-table-{table.order}"
-                table.df.to_excel(writer, sheet_name=sheet_name)
-            writer.close()
+            with alive_bar(len_table) as bar:
+                for table in self._tables:
+                    len_table = len(self.tables)
+                    sheet_name = f"page-{table.page}-table-{table.order}"
+                    table.df.to_excel(writer, sheet_name=sheet_name)
+                    bar()
+                writer.close()
             if compress:
                 zipname = os.path.join(os.path.dirname(path), root) + ".zip"
                 with zipfile.ZipFile(zipname, "w", allowZip64=True) as z:
